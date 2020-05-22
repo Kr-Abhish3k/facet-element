@@ -8,6 +8,7 @@ export class FacetElement extends LitElement {
       *::before {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
       }
 
       :host {
@@ -17,7 +18,17 @@ export class FacetElement extends LitElement {
       }
 
       .Facets__Wrapper {
-        width: 250px;
+        width: 225px;
+      }
+
+      .Facets__header{
+         text-align:center;
+         padding: 4px 10px;
+         background-color: #dae5e9;
+      }
+
+      .Facets__header>h4 {
+         margin: 0;
       }
 
       .Facets__list , ul{
@@ -58,8 +69,25 @@ export class FacetElement extends LitElement {
       }
 
       .SeeAll--link {
+         position: relative;
          color: #069;
+         padding-left: 20px;
+      }
 
+      .SeeAll--link.SeeAll--expand::before  {
+         transform: rotate(0deg);
+      }
+
+      .SeeAll--link::before {
+         content: "";
+         display: inline-block;
+         height: 8px;
+         width: 13px;
+         position: absolute;
+         left: 0;
+         top: 3px;
+         background: url("../images/triangle-3.svg") no-repeat;
+         transform: rotate(180deg);
       }
     `;
    }
@@ -114,6 +142,9 @@ export class FacetElement extends LitElement {
 
    render() {
       return html`<div class="Facets__Wrapper">
+         <div class="Facets__header">
+            <h4>Nanostructure</h4>
+         </div>
          <ul id="Nanomaterial-Facet" class="Facets__list">
          ${this.facetCollection.map((facet, index) =>
          index < 10 ? html`
@@ -131,7 +162,7 @@ export class FacetElement extends LitElement {
             </li>`
       )}
          </ul>
-         ${this.facetCollection.length > 10 ? html`<a class="SeeAll--link" @click=${this._showAll}>See all(${this.facetCollection.length})</a>` : html``}
+         ${this.facetCollection.length > 10 ? html`<a class="SeeAll--link SeeAll--expand" @click=${this._showAll}>See all(${this.facetCollection.length})</a>` : html``}
       </div>`
       /*return html`<div class="Facets__Wrapper">
          ${this.facetCollection.map((facet, index) =>
@@ -167,11 +198,12 @@ export class FacetElement extends LitElement {
          if (element.classList.contains("Facets__listItem--hidden")) {
             element.classList.replace("Facets__listItem--hidden", "Facets__listItem--active");
             event.target.innerText = "See Less";
-
+            this.shadowRoot.querySelector(".SeeAll--link").classList.remove("SeeAll--expand");
          }
          else if (element.classList.contains("Facets__listItem--active")) {
             element.classList.replace("Facets__listItem--active", "Facets__listItem--hidden");
             event.target.innerText = `See all(${this.facetCollection.length})`;
+            this.shadowRoot.querySelector(".SeeAll--link").classList.add("SeeAll--expand");
          }
       });
    }
