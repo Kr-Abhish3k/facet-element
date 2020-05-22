@@ -22,7 +22,8 @@ export class FacetElement extends LitElement {
       }
 
       .Facets__header{
-         text-align:center;
+         position: relative;
+         /*text-align:center;*/
          padding: 4px 10px;
          background-color: #dae5e9;
       }
@@ -127,54 +128,63 @@ export class FacetElement extends LitElement {
          background: url("../images/triangle-3.svg") no-repeat;
          transform: rotate(180deg);
       }
+
+      .SortBtn {
+         color: #000;
+         background-color: #E9E9E9;
+         font-weight: bold;
+         position: absolute;top: 3px; right: 5px;
+         border: 1px solid #069;
+      }
     `;
    }
 
    static get properties() {
       return {
          facetCollection: {
-            type: Object,
-            name: {},
+            type: Object
          },
-         facetName: { type: String, attribute: 'facet-name' },
+         sortBy: {
+            type: String
+         }
       };
    }
 
    constructor() {
       super();
       this.facetCollection = [
-         { name: 'Nanostructured materials', count: '99474' },
-         { name: 'Nanoparticles', count: '68375' },
-         { name: 'Nanofilm', count: '18541' },
-         { name: 'Nanosheets', count: '14189' },
-         { name: 'Nanoporous materials', count: '13015' },
-         { name: 'Nanowires', count: '8572' },
-         { name: 'Nanocrystals', count: '7144' },
-         { name: 'Nanofibers', count: '5,981' },
-         { name: 'Nanorods', count: '5,348' },
-         { name: 'Quantum dots', count: '5,212' },
-         { name: 'Nanocapsules', count: '5,063' },
-         { name: 'Nanotubes', count: '4,414' },
-         { name: 'Nanogel', count: '2,344' },
-         { name: 'Supramolecule', count: '2,259' },
-         { name: 'Multi-walled nanotube', count: '2,064' },
-         { name: 'Fullerene', count: '1,718' },
-         { name: 'Single-walled nanotube', count: '1,706' },
-         { name: 'Nanoribbons', count: '1,275' },
-         { name: 'Nanoemulsions', count: '868' },
-         { name: 'DNA origami', count: '811' },
-         { name: 'Nanocages', count: '737' },
-         { name: 'Quantum wells', count: '578' },
-         { name: 'Nanobelts', count: '491' },
-         { name: 'Dendrimers', count: '314' },
-         { name: 'Nanorings', count: '301' },
-         { name: 'Nanoneedles', count: '253' },
-         { name: 'Generic', count: '151' },
-         { name: 'Nanochains', count: '125' },
-         { name: 'DNA polyhedron', count: '119' },
-         { name: 'Nanowhiskers', count: '89' },
-         { name: 'Tiling array', count: '72' },
-         { name: 'Quantum wires', count: '40' },
+         { name: 'Nanostructured materials', count: 99474 },
+         { name: 'Nanoparticles', count: 68375 },
+         { name: 'Nanofilm', count: 18541 },
+         { name: 'Nanosheets', count: 14189 },
+         { name: 'Nanoporous materials', count: 13015 },
+         { name: 'Nanowires', count: 8572 },
+         { name: 'Nanocrystals', count: 7144 },
+         { name: 'Nanofibers', count: 5981 },
+         { name: 'Nanorods', count: 5348 },
+         { name: 'Quantum dots', count: 5212 },
+         { name: 'Nanocapsules', count: 5063 },
+         { name: 'Nanotubes', count: 4414 },
+         { name: 'Nanogel', count: 2344 },
+         { name: 'Supramolecule', count: 2259 },
+         { name: 'Multi-walled nanotube', count: 2064 },
+         { name: 'Fullerene', count: 1718 },
+         { name: 'Single-walled nanotube', count: 1706 },
+         { name: 'Nanoribbons', count: 1275 },
+         { name: 'Nanoemulsions', count: 868 },
+         { name: 'DNA origami', count: 811 },
+         { name: 'Nanocages', count: 737 },
+         { name: 'Quantum wells', count: 578 },
+         { name: 'Nanobelts', count: 491 },
+         { name: 'Dendrimers', count: 314 },
+         { name: 'Nanorings', count: 301 },
+         { name: 'Nanoneedles', count: 253 },
+         { name: 'Generic', count: 151 },
+         { name: 'Nanochains', count: 125 },
+         { name: 'DNA polyhedron', count: 119 },
+         { name: 'Nanowhiskers', count: 89 },
+         { name: 'Tiling array', count: 72 },
+         { name: 'Quantum wires', count: 40 },
       ];
    }
 
@@ -183,7 +193,9 @@ export class FacetElement extends LitElement {
       <div class="Facets__Wrapper">
          <div class="Facets__header">
                <h4>Nanostructure</h4>
-            </div>
+               <button class="SortBtn" @click=${this._sortBy} prop="name" type="button" name="SortFacets">Sort by name</button>
+         </div>
+
          <div class="FacetSearch">
             <div class="FacetSearch__inputWrapper">
                <input class="FacetSearch__input" type="text" placeholder="Search" autocomplete="off">
@@ -252,6 +264,26 @@ export class FacetElement extends LitElement {
             element.classList.replace("Facets__listItem--active", "Facets__listItem--hidden");
             event.target.innerText = `See all(${this.facetCollection.length})`;
             this.shadowRoot.querySelector(".SeeAll--link").classList.add("SeeAll--expand");
+         }
+      });
+   }
+
+   _sortBy() {
+      const options = ["name", "count"];
+      const property = this.shadowRoot.querySelector(".SortBtn").getAttribute("prop")
+      this.sortBy = property;
+      this.facetCollection.sort((element1, element2) => {
+         if (element1[property] > element2[property])
+            return 1;
+         else if (element1[property] < element2[property])
+            return -1;
+         return 0;
+      });
+
+      options.map(option => {
+         if (option != property) {
+            this.shadowRoot.querySelector(".SortBtn").setAttribute("prop", option);
+            this.shadowRoot.querySelector(".SortBtn").textContent = `Sort by ${option}`;
          }
       });
    }
