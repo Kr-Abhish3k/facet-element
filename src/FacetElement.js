@@ -31,6 +31,44 @@ export class FacetElement extends LitElement {
          margin: 0;
       }
 
+      .FacetSearch {
+         padding: 8px;
+         position:relative;
+      }
+
+      .FacetSearch__inputWrapper {
+         padding-right: 22px;
+         height: 24px;
+         border-bottom: 2px solid #dcdcdc;
+      }
+
+      .FacetSearch__input {
+         background-color:transparent;
+         border: none;
+         box-sizing: border-box;
+         padding: 4px 3px 3px 3px;
+         width: 100%;
+         height: 24px;
+         outline: none;
+         color:#666666;
+         font-size: 1rem;
+      }
+
+      .FacetSearch__submit {
+         background: url("../images/icon-search-25x25-gray.svg") center no-repeat;
+         background-size: 15px auto;
+         width: 24px;
+         height: 24px;
+         border: none;
+         position: absolute;
+         right: 8px;
+         top: 8px;
+      }
+
+      .FacetSearch__submit:hover {
+         background: url("../images/icon-search-16x16-blue.svg") center no-repeat;
+      }
+
       .Facets__list , ul{
         list-style: none;
         padding: 0;
@@ -141,29 +179,39 @@ export class FacetElement extends LitElement {
    }
 
    render() {
-      return html`<div class="Facets__Wrapper">
+      return html`
+      <div class="Facets__Wrapper">
          <div class="Facets__header">
-            <h4>Nanostructure</h4>
+               <h4>Nanostructure</h4>
+            </div>
+         <div class="FacetSearch">
+            <div class="FacetSearch__inputWrapper">
+               <input class="FacetSearch__input" type="text" placeholder="Search" autocomplete="off">
+            </div>
+            <input type="button" class="FacetSearch__submit">
          </div>
-         <ul id="Nanomaterial-Facet" class="Facets__list">
-         ${this.facetCollection.map((facet, index) =>
+         <div class="Facets__listWrapper">
+            <ul id="Nanomaterial-Facet" class="Facets__list">
+            ${this.facetCollection.map((facet, index) =>
          index < 10 ? html`
-            <li class="Facets__listItem Facet">
-               <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
-               <label class="Facet_title" for="facet">${facet.name}</label>
-               <span class="Facet__value"> ${facet.count}</span>
-            </li>`
+               <li class="Facets__listItem Facet">
+                  <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
+                  <label class="Facet_title" for="facet">${facet.name}</label>
+                  <span class="Facet__value"> ${facet.count}</span>
+               </li>`
             :
             html`
-            <li class="Facets__listItem Facets__listItem--hidden Facet">
-               <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
-               <label class="Facet_title" for="facet">${facet.name}</label>
-               <span class="Facet__value"> ${facet.count}</span>
-            </li>`
+               <li class="Facets__listItem Facets__listItem--hidden Facet">
+                  <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
+                  <label class="Facet_title" for="facet">${facet.name}</label>
+                  <span class="Facet__value"> ${facet.count}</span>
+               </li>`
       )}
-         </ul>
-         ${this.facetCollection.length > 10 ? html`<a class="SeeAll--link SeeAll--expand" @click=${this._showAll}>See all(${this.facetCollection.length})</a>` : html``}
+               </ul>
+               ${this.facetCollection.length > 10 ? html`<a class="SeeAll--link SeeAll--expand" @click=${this._showAll}>See all(${this.facetCollection.length})</a>` : html``}
+            </div>
       </div>`
+
       /*return html`<div class="Facets__Wrapper">
          ${this.facetCollection.map((facet, index) =>
          index <= 10 ?
