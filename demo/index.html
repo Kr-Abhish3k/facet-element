@@ -7,23 +7,9 @@
       background: #fafafa;
     }
   </style>
+  <script type="module" src="../src/FacetElement.js"></script>
 </head>
 <body>
-  <div id="demo"></div>
-
-  <script type="module">
-    import { html, render } from 'lit-html';
-    import '../facet-element.js';
-
-    const title = 'Hello owc World!';
-    render(
-      html`
-        <facet-element .title=${title}>
-          some more light-dom
-        </facet-element>
-      `,
-      document.querySelector('#demo')
-    );
-  </script>
+   <facet-element></facet-element>
 </body>
 </html>
