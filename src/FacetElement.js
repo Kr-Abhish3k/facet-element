@@ -146,12 +146,17 @@ export class FacetElement extends LitElement {
          },
          sortBy: {
             type: String
+         },
+         seeAll: {
+            type: Boolean
          }
       };
    }
 
    constructor() {
       super();
+      this.seeAll = false;
+      this.sortBy = 'count';
       this.facetCollection = [
          { name: 'Nanostructured materials', count: 99474 },
          { name: 'Nanoparticles', count: 68375 },
@@ -193,7 +198,7 @@ export class FacetElement extends LitElement {
       <div class="Facets__Wrapper">
          <div class="Facets__header">
                <h4>Nanostructure</h4>
-               <button class="SortBtn" @click=${this._sortBy} prop="name" type="button" name="SortFacets">Sort by name</button>
+               ${this._renderSortButton()}
          </div>
 
          <div class="FacetSearch">
@@ -203,89 +208,57 @@ export class FacetElement extends LitElement {
             <input type="button" class="FacetSearch__submit">
          </div>
          <div class="Facets__listWrapper">
-            <ul id="Nanomaterial-Facet" class="Facets__list">
-            ${this.facetCollection.map((facet, index) =>
-         index < 10 ? html`
-               <li class="Facets__listItem Facet">
-                  <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
-                  <label class="Facet_title" for="facet">${facet.name}</label>
-                  <span class="Facet__value"> ${facet.count}</span>
-               </li>`
-            :
-            html`
-               <li class="Facets__listItem Facets__listItem--hidden Facet">
-                  <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
-                  <label class="Facet_title" for="facet">${facet.name}</label>
-                  <span class="Facet__value"> ${facet.count}</span>
-               </li>`
-      )}
-               </ul>
-               ${this.facetCollection.length > 10 ? html`<a class="SeeAll--link SeeAll--expand" @click=${this._showAll}>See all(${this.facetCollection.length})</a>` : html``}
-            </div>
+            ${this._renderFacets()}
+            ${this._renderSeeAllLessButton()}
+         </div>
       </div>`
+   }
 
-      /*return html`<div class="Facets__Wrapper">
-         ${this.facetCollection.map((facet, index) =>
-         index <= 10 ?
-            html`
-            <ul class="Facets__list">
-               <li class="Facets__listItem Facet">
+   _renderFacets() {
+      const facets = this.seeAll ? this.facetCollection : this.facetCollection.slice(0, 10);
+      return html`
+            <ul id="Nanomaterial-Facet" class="Facets__list">
+            ${facets.map((facet) => {
+               return html`<li class="Facets__listItem Facet">
                   <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
                   <label class="Facet_title" for="facet">${facet.name}</label>
                   <span class="Facet__value"> ${facet.count}</span>
-               </li>
-            </ul>`
-            :
-            html`
-            <ul class="Facets__list--collapse">
-               <li class="Facets__listItem Facet ">
-                  <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
-                  <label class="Facet_title" for="facet">${facet.name}</label>
-                  <span class="Facet__value"> ${facet.count}</span>
-               </li>
+               </li>`
+            })}
             </ul>
-            `
-      )}
-      ${this.facetCollection.length > 10 ? html`<a>See all(${this.facetCollection.length})</a>` : html``}
-      </div>`*/
+         `
    }
 
-   _showAll(event) {
-      const facetList = this.shadowRoot.getElementById("Nanomaterial-Facet");
-      const listItems = Array.from(facetList.children);
-
-      listItems.map(element => {
-         if (element.classList.contains("Facets__listItem--hidden")) {
-            element.classList.replace("Facets__listItem--hidden", "Facets__listItem--active");
-            event.target.innerText = "See Less";
-            this.shadowRoot.querySelector(".SeeAll--link").classList.remove("SeeAll--expand");
-         }
-         else if (element.classList.contains("Facets__listItem--active")) {
-            element.classList.replace("Facets__listItem--active", "Facets__listItem--hidden");
-            event.target.innerText = `See all(${this.facetCollection.length})`;
-            this.shadowRoot.querySelector(".SeeAll--link").classList.add("SeeAll--expand");
-         }
-      });
+   _renderSortButton() {
+      const buttonText = this.sortBy === 'count' ? 'Sort by name' : 'Sort by count';
+      return html`<button class="SortBtn" @click=${this._sortFacets} type="button" name="SortFacets">${buttonText}</button>`
    }
 
-   _sortBy() {
-      const options = ["name", "count"];
-      const property = this.shadowRoot.querySelector(".SortBtn").getAttribute("prop")
-      this.sortBy = property;
-      this.facetCollection.sort((element1, element2) => {
-         if (element1[property] > element2[property])
-            return 1;
-         else if (element1[property] < element2[property])
-            return -1;
-         return 0;
-      });
+   _renderSeeAllLessButton() {
+      const linkText = this.seeAll ? 'See Less' : `See All(${this.facetCollection.length})`;
+      const className = this.seeAll ? '' : 'SeeAll--expand';
+      return this.facetCollection.length > 10 ? html`<a class="SeeAll--link ${className}" @click=${this._showAll}>${linkText}</a>` : undefined;
+   }
 
-      options.map(option => {
-         if (option != property) {
-            this.shadowRoot.querySelector(".SortBtn").setAttribute("prop", option);
-            this.shadowRoot.querySelector(".SortBtn").textContent = `Sort by ${option}`;
-         }
-      });
+   _showAll() {
+      this.seeAll = !this.seeAll;
+   }
+
+   _sortFacets() {
+      this.sortBy = this.sortBy === 'count' ? 'name' : 'count';
+      if(this.sortBy === 'count') {
+         this._sortByCount();
+      } else {
+         this._sortByName();
+      }
+   }
+
+   _sortByName() {
+      this.facetCollection.sort((a, b) => a.name.localeCompare(b.name));
+   }
+
+   _sortByCount() {
+      this.facetCollection.sort((a, b) => b.count - a.count);
    }
 }
 
