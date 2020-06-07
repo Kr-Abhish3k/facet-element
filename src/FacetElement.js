@@ -205,9 +205,17 @@ export class FacetElement extends LitElement {
             type="text"
             placeholder="Search"
             autocomplete="off"
+            aria-label="Search for a facet"
           />
         </div>
-        <input type="button" class="FacetSearch__submit" />
+        <input
+          type="button"
+          role="button"
+          class="FacetSearch__submit"
+          name="submit"
+          value=""
+          aria-label="Facet Search Submit"
+        />
       </div>
 
       <div class="Facets__listWrapper">
@@ -223,8 +231,19 @@ export class FacetElement extends LitElement {
     return html`<ul id="Nanomaterial-Facet" class="Facets__list">
       ${facets.map(
         facet => html` <li class="Facets__listItem Facet">
-          <input type="checkbox" class="Facet__checkbox" name=${facet.name} />
-          <label class="Facet_title" for="facet">${facet.name}</label>
+          <input
+            aria-label=""
+            aria-labelledby=${facet.name.replace(' ', '', 'g')}
+            type="checkbox"
+            class="Facet__checkbox"
+            name=${facet.name}
+          />
+          <label
+            id=${facet.name.replace(' ', '', 'g')}
+            class="Facet_title"
+            for="facet"
+            >${facet.name}</label
+          >
           <span class="Facet__value"> ${facet.count}</span>
         </li>`
       )}
@@ -251,6 +270,7 @@ export class FacetElement extends LitElement {
     const buttonText =
       this.sortBy === 'count' ? 'Sort by name' : 'Sort by count';
     return html`<button
+      id="sortBy"
       class="SortBtn"
       @click=${this._sortFacets}
       type="button"
