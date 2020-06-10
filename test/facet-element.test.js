@@ -33,8 +33,7 @@ describe('FacetElement', () => {
     let ShowAllLink;
     const el = await fixture(html` <facet-element></facet-element> `);
     ShowAllLink = el.shadowRoot.querySelector('.SeeAll--link');
-    el.shadowRoot.querySelector('a.SeeAll--link').click();
-
+    await el.shadowRoot.querySelector('a.SeeAll--link').click();
     /* expect(el.shadowRoot.querySelectorAll(".Facet__checkbox").length).to.equal(32); */
 
     ShowAllLink = el.shadowRoot.querySelector('a.SeeAll--link').textContent;
@@ -51,7 +50,7 @@ describe('FacetElement', () => {
     expect(sortBtn.textContent.trim()).to.equal('Sort by name');
     expect(firstFacetCount).to.equal('99474');
 
-    sortBtn.click();
+    await sortBtn.click();
 
     firstFacetCount = el.shadowRoot
       .querySelectorAll('li.Facets__listItem')[0]
@@ -61,6 +60,14 @@ describe('FacetElement', () => {
 
     expect(firstFacetCount).to.equal('314');
     expect(sortBtn.textContent.trim()).to.equal('Sort by count');
+
+    await sortBtn.click();
+    firstFacetCount = el.shadowRoot
+      .querySelectorAll('li.Facets__listItem')[0]
+      .querySelector('.Facet__value')
+      .textContent.trim();
+    expect(sortBtn.textContent.trim()).to.equal('Sort by name');
+    expect(firstFacetCount).to.equal('99474');
   });
 
   it('passes the a11y audit', async () => {
