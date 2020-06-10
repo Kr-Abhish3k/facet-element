@@ -20,6 +20,7 @@ module.exports = config => {
       esm: {
         nodeResolve: true,
       },
+      reporters: ['progress'],
       // you can overwrite/extend the config further
     })
   );

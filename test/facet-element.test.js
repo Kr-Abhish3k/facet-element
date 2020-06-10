@@ -3,30 +3,31 @@ import { html, fixture, expect } from '@open-wc/testing';
 import '../src/FacetElement.js';
 
 describe('FacetElement', () => {
-  it('has a default title "Nanostructure"', async () => {
-    const el = await fixture(
+  let el;
+  beforeEach(async () => {
+    el = await fixture(
       html` <facet-element title="Nanostructure"></facet-element> `
     );
-    expect(el.title).to.equal('Nanostructure');
+  });
+
+  it('has a default title "Nanostructure"', async () => {
+    await expect(el.title).to.equal('Nanostructure');
   });
 
   it('renders a sortBy button at top', async () => {
-    const el = await fixture(html` <facet-element></facet-element> `);
-    expect(el.shadowRoot.querySelector('.SortBtn').textContent.trim()).to.equal(
-      'Sort by name'
-    );
+    await expect(
+      el.shadowRoot.querySelector('.SortBtn').textContent.trim()
+    ).to.equal('Sort by name');
   });
 
   it('renders a list of 10 facets with checkboxes initially', async () => {
-    const el = await fixture(html` <facet-element></facet-element> `);
     const facets = el.shadowRoot.querySelectorAll('.Facet__checkbox');
-    expect(facets.length).to.equal(10);
+    await expect(facets.length).to.equal(10);
   });
 
   it('should have a show all link at bottom', async () => {
-    const el = await fixture(html` <facet-element></facet-element> `);
     const linkText = el.shadowRoot.querySelector('.SeeAll--link').textContent;
-    expect(linkText).to.equal('See all(32)');
+    await expect(linkText).to.equal('See all(32)');
   });
 
   it('should show all the facets on clicking See all link', async () => {
@@ -37,18 +38,15 @@ describe('FacetElement', () => {
     /* expect(el.shadowRoot.querySelectorAll(".Facet__checkbox").length).to.equal(32); */
 
     ShowAllLink = el.shadowRoot.querySelector('a.SeeAll--link').textContent;
-    expect(ShowAllLink).to.equal('See less');
+    await expect(ShowAllLink).to.equal('See less');
   });
 
   it('should sort facets by name/count', async () => {
-    const el = await fixture(html` <facet-element></facet-element> `);
     let sortBtn = el.shadowRoot.getElementById('sortBy');
     let firstFacetCount = el.shadowRoot
       .querySelectorAll('li.Facets__listItem')[0]
       .querySelector('.Facet__value')
       .textContent.trim();
-    expect(sortBtn.textContent.trim()).to.equal('Sort by name');
-    expect(firstFacetCount).to.equal('99474');
 
     await sortBtn.click();
 
@@ -71,10 +69,6 @@ describe('FacetElement', () => {
   });
 
   it('passes the a11y audit', async () => {
-    const el = await fixture(
-      html` <facet-element title="Nanostructure"></facet-element> `
-    );
-
     await expect(el).shadowDom.to.be.accessible();
   });
 });
