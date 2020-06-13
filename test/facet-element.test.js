@@ -31,9 +31,7 @@ describe('FacetElement', () => {
   });
 
   it('should show all the facets on clicking See all link', async () => {
-    let ShowAllLink;
-    const el = await fixture(html` <facet-element></facet-element> `);
-    ShowAllLink = el.shadowRoot.querySelector('.SeeAll--link');
+    let ShowAllLink = el.shadowRoot.querySelector('.SeeAll--link');
     await el.shadowRoot.querySelector('a.SeeAll--link').click();
     /* expect(el.shadowRoot.querySelectorAll(".Facet__checkbox").length).to.equal(32); */
 
