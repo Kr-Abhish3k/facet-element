@@ -1,6 +1,6 @@
 import { html, css, LitElement } from 'lit-element';
 
-export class FacetElement extends LitElement {
+export default class FacetElement extends LitElement {
   static get styles() {
     return css`
       *,
@@ -10,7 +10,9 @@ export class FacetElement extends LitElement {
         padding: 0;
         box-sizing: border-box;
       }
-
+      p {
+        margin: 5px 0;
+      }
       :host {
         display: block;
         padding: 25px;
@@ -38,6 +40,7 @@ export class FacetElement extends LitElement {
       }
 
       .FacetSearch__inputWrapper {
+        position: relative;
         padding-right: 22px;
         height: 24px;
         border-bottom: 2px solid #dcdcdc;
@@ -52,7 +55,7 @@ export class FacetElement extends LitElement {
         height: 24px;
         outline: none;
         color: #666666;
-        font-size: 1rem;
+        font-size: 0.8rem;
       }
 
       .FacetSearch__submit {
@@ -74,8 +77,12 @@ export class FacetElement extends LitElement {
       ul {
         list-style: none;
         padding: 0;
+        margin: 0;
       }
 
+      .Facets__listWrapper {
+        padding: 0 8px;
+      }
       .Facets__listItem {
         position: relative;
         border-bottom: 1px solid #e9e9e9;
@@ -139,6 +146,44 @@ export class FacetElement extends LitElement {
         right: 5px;
         border: 1px solid #069;
       }
+
+      #drawer {
+        position: relative;
+      }
+
+      .selectedRow {
+        color: white;
+        background: #606062;
+      }
+
+      ul.autosuggest {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #f4f4f4;
+        width: 100%;
+        border: 1px solid silver;
+        z-index: 10;
+        cursor: pointer;
+      }
+
+      li.autosuggest__item {
+        margin: 1px;
+        border-bottom: 1px solid silver;
+        display: block;
+        color: black;
+        text-decoration: none;
+        padding: 5px;
+      }
+
+      li.autosuggest__item:last-child {
+        border-bottom: none;
+      }
+
+      li.autosuggest__item > a {
+        text-decoration: none;
+        color: #000000;
+      }
     `;
   }
 
@@ -148,6 +193,8 @@ export class FacetElement extends LitElement {
       sortBy: { type: String },
       title: { type: String },
       seeAll: { type: Boolean },
+      autosuggestList: { type: Array },
+      selectedFacets: { type: Array },
     };
   }
 
@@ -189,64 +236,81 @@ export class FacetElement extends LitElement {
       { name: 'Tiling array', count: 72 },
       { name: 'Quantum wires', count: 40 },
     ];
+
+    this.dictionary = this.facetCollection.map(facet => facet.name);
+    this.selectedIndex = 0;
+    this.filteredWordsCount = 0;
+    this.autosuggestList = [];
+    this.selectedFacets = [];
   }
 
   render() {
-    return html` <div class="Facets__Wrapper">
-      <div class="Facets__header">
-        <h4>${this.title}</h4>
-        ${this._renderSortButton()}
-      </div>
-
-      <div class="FacetSearch">
-        <div class="FacetSearch__inputWrapper">
-          <input
-            class="FacetSearch__input"
-            type="text"
-            placeholder="Search"
-            autocomplete="off"
-            aria-label="Search for a facet"
-          />
+    return html`
+      <div id="test" class="Facets__Wrapper">
+        <div class="Facets__header">
+          <h4>${this.title}</h4>
+          ${this._renderSortButton()}
         </div>
-        <input
-          type="button"
-          role="button"
-          class="FacetSearch__submit"
-          name="submit"
-          value=""
-          aria-label="Facet Search Submit"
-        />
-      </div>
 
-      <div class="Facets__listWrapper">
-        ${this._renderFacets()} ${this._renderSeeAllLessBtn()}
+        <div class="FacetSearch">
+          <div class="FacetSearch__inputWrapper">
+            <input
+              id="textfield"
+              class="FacetSearch__input"
+              type="text"
+              placeholder="Search"
+              autocomplete="off"
+              aria-label="Search for a facet"
+              @keyup=${this._searchFacet}
+            />
+          </div>
+
+          <input
+            type="button"
+            role="button"
+            class="FacetSearch__submit"
+            name="submit"
+            value=""
+            aria-label="Facet Search Submit"
+          />
+          <div id="drawer">
+            ${this._showAutosuggest()}
+          </div>
+        </div>
+
+        <div class="Facets__listWrapper">
+          ${this._renderFacets()} ${this._renderSeeAllLessBtn()}
+        </div>
       </div>
-    </div>`;
+    `;
   }
 
   _renderFacets() {
+    this._rearrangeCollection();
     const facets = this.seeAll
       ? this.facetCollection
       : this.facetCollection.slice(0, 10);
+
     return html`<ul id="Nanomaterial-Facet" class="Facets__list">
       ${facets.map(
         facet => html` <li class="Facets__listItem Facet">
           <input
-            aria-label=""
+            aria-label=${facet.name}
             aria-labelledby=${facet.name.replace(' ', '', 'g')}
             type="checkbox"
             class="Facet__checkbox"
-            name=${facet.name}
-          />
-          <label
             id=${facet.name.replace(' ', '', 'g')}
-            class="Facet_title"
-            for="facet"
-            >${facet.name}</label
-          >
-          <span class="Facet__value"> ${facet.count}</span>
+            name=${facet.name}
+            @click=${this._handleCheckBoxClick}
+          />
+
+          <label class="Facet_title" for="facet">
+            ${facet.name}
+          </label>
+          <span class="Facet__value"> ${facet.count} </span>
         </li>`
       )}
+      ${this._markSelected()}
     </ul>`;
   }
 
@@ -254,7 +318,9 @@ export class FacetElement extends LitElement {
     const linkText = this.seeAll
       ? 'See less'
       : `See all(${this.facetCollection.length})`;
+
     const className = this.seeAll ? '' : 'SeeAll--expand';
+
     return this.facetCollection.length > 10
       ? html`<a class="SeeAll--link ${className}" @click=${this._showAll}
           >${linkText}</a
@@ -292,6 +358,164 @@ export class FacetElement extends LitElement {
 
   _sortByCount() {
     this.facetCollection.sort((a, b) => b.count - a.count);
+  }
+
+  _searchFacet(e) {
+    // select element from autosuggest on enter
+    if (e.keyCode === 13) {
+      this._rowSelected();
+      return;
+    }
+
+    // arrow keys up and down event
+    if ([38, 40].includes(e.keyCode)) {
+      this._arrowUpDown(e);
+      return;
+    }
+
+    const searchTerm = this.shadowRoot.getElementById('textfield').value;
+    if (searchTerm === '') {
+      this.autosuggestList = [];
+      // this.shadowRoot.getElementById("drawer").innerHTML = '';
+      return;
+    }
+    this._filterList(searchTerm);
+  }
+
+  _filterList(prefix) {
+    const result = [];
+    this.dictionary.map(term =>
+      term.toLowerCase().match(prefix.toLowerCase()) ? result.push(term) : ''
+    );
+    this.filteredWordsCount = result.length;
+    this.autosuggestList = result.length > 0 ? [...result] : ['no match found'];
+  }
+
+  _showAutosuggest() {
+    /* to select first element from autosuggest by default add check on class name */
+    return this.autosuggestList.length > 0
+      ? html`<ul class="autosuggest">
+          ${this.autosuggestList.map(
+            (element, index) => html` <li
+              id="row-${index}"
+              class=${index === 0
+                ? 'autosuggest__item selectedRow'
+                : 'autosuggest__item'}
+              @mousemove=${() => this._selectHighlight(index)}
+              @click=${() => this._rowSelected()}
+              @keydown=${this._tabSelect}
+            >
+              ${!this.autosuggestList.includes('no match found')
+                ? html`<a href="#">${element}</a>`
+                : html`<p>${element}</p>`}
+            </li>`
+          )}
+        </ul>`
+      : html``;
+  }
+
+  _selectHighlight(index) {
+    this.shadowRoot
+      .getElementById(`row-${this.selectedIndex}`)
+      .classList.remove('selectedRow');
+    this.shadowRoot.getElementById(`row-${index}`).classList.add('selectedRow');
+    this.selectedIndex = index;
+  }
+
+  _tabSelect(event) {
+    if (event.keyCode === 9) {
+      this.shadowRoot.getElementById(`row-${this.selectedIndex}`).focus();
+      this._rowSelected();
+    }
+  }
+
+  _rowSelected() {
+    const selectedSuggestion = this.shadowRoot.getElementById(
+      `row-${this.selectedIndex}`
+    ).innerText;
+    // fill the text field with the selected value
+    this.shadowRoot.getElementById('textfield').value = selectedSuggestion;
+
+    // select the checkbox in facet
+    this._selectFacet(selectedSuggestion);
+
+    // hide the autosuggest menu
+    this.autosuggestList = [];
+    // this.shadowRoot.getElementById("drawer").innerHTML = '';
+    this.selectedIndex = 0;
+    this.filteredWordsCount = 0;
+
+    // clear search field
+    this.shadowRoot.getElementById('textfield').value = '';
+  }
+
+  _arrowUpDown(e) {
+    // remove highlight from previous selection
+    this.shadowRoot
+      .getElementById(`row-${this.selectedIndex}`)
+      .classList.remove('selectedRow');
+
+    // arrow-up key
+    if (e.keyCode === 38 && this.selectedIndex > 0) {
+      // should not be focused on first element of autosuggest
+      this.selectedIndex -= 1;
+    }
+
+    // arrow-down key
+    if (e.keyCode === 40 && this.selectedIndex < this.filteredWordsCount - 1) {
+      // should not be focused on last element of autosuggest
+      this.selectedIndex += 1;
+    }
+
+    // add highlight on current selection
+    this.shadowRoot
+      .getElementById(`row-${this.selectedIndex}`)
+      .classList.add('selectedRow');
+  }
+
+  _selectFacet(facetName) {
+    this.selectedFacets = [...this.selectedFacets, facetName];
+
+    // Remove duplicates if any
+    this.selectedFacets = this.selectedFacets.filter((value, index, self) => {
+      return self.indexOf(value) === index;
+    });
+  }
+
+  _handleCheckBoxClick(event) {
+    const targetValue = event.target.name;
+
+    if (event.target.checked) this._selectFacet(targetValue);
+    else this._deselectFacet(targetValue);
+  }
+
+  _deselectFacet(facetName) {
+    // remove the element from this.selectedFacets array
+    this.selectedFacets = this.selectedFacets.filter(
+      facet => facet !== facetName
+    );
+  }
+
+  _markSelected() {
+    // add checked property to checkboxes
+    this.selectedFacets.forEach(facet => {
+      this.shadowRoot.getElementById(facet.replace(' ', '', 'g')).checked =
+        'checked';
+    });
+  }
+
+  _rearrangeCollection() {
+    // add selected facets to top of collection
+    this.selectedFacets.forEach(selectedFacet => {
+      this.facetCollection.forEach((facet, index) => {
+        if (selectedFacet === facet.name) {
+          // remove the entry from it's position and add it on top
+          this.facetCollection.unshift(
+            ...this.facetCollection.splice(index, 1)
+          );
+        }
+      });
+    });
   }
 }
 

@@ -1,9 +1,11 @@
 import { html, fixture, expect } from '@open-wc/testing';
 
-import '../src/FacetElement.js';
+// import sinon from 'sinon';
+import FacetElement from '../src/FacetElement.js';
 
 describe('FacetElement', () => {
   let el;
+
   beforeEach(async () => {
     el = await fixture(
       html` <facet-element title="Nanostructure"></facet-element> `
@@ -64,6 +66,15 @@ describe('FacetElement', () => {
       .textContent.trim();
     expect(sortBtn.textContent.trim()).to.equal('Sort by name');
     expect(firstFacetCount).to.equal('99474');
+  });
+
+  xit('Should search in facet list when the no of characters is more than 3', async () => {
+    const searchInput = el.shadowRoot.querySelector('.FacetSearch__input');
+
+    await searchInput.sendKeys('jaydeep'); // check for function use
+    console.log(searchInput.textContent);
+
+    expect(FacetElement.prototype._searchFacet.called).to.equal(true);
   });
 
   it('passes the a11y audit', async () => {
