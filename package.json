@@ -25,7 +25,7 @@
   "devDependencies": {
     "@open-wc/eslint-config": "^2.0.0",
     "@open-wc/testing": "^2.0.0",
-    "@open-wc/testing-karma": "^3.0.0",
+    "@open-wc/testing-karma": "^4.0.9",
     "commitizen": "^4.1.2",
     "cz-conventional-changelog": "^3.2.0",
     "deepmerge": "^3.2.0",
